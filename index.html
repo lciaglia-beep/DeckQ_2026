@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qantica | Pitch Deck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #050505;
+            --card-bg: #0c0c0e;
+            --accent-yellow: #FACC15;
+            --accent-dim: rgba(250, 204, 21, 0.1);
+            --border-light: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(250, 204, 21, 0.4);
+            --text-gray: #9CA3AF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: #F3F4F6;
+            overflow: hidden; /* Prevent scrolling for app-like presentation feel */
+            -webkit-tap-highlight-color: transparent;
+            background-image: 
+                radial-gradient(circle at 15% 0%, rgba(250, 204, 21, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 85% 100%, rgba(255, 255, 255, 0.02) 0%, transparent 40%);
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Compartimentos Originales */
+        .compartment {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .compartment.interactive:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(250,204,21,0.05);
+        }
+
+        /* ----- EFECTO CONTRATOS / TARJETAS ----- */
+        .contract-card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .contract-card:hover {
+            border-color: var(--accent-yellow);
+            background: rgba(250,204,21,0.05);
+            transform: scale(1.02);
+        }
+        .contract-card .data-stream {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+            background: var(--accent-yellow);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
+        }
+        .contract-card:hover .data-stream { transform: scaleX(1); }
+
+        /* Text Gradients & Animations */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #fef08a, #eab308);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 15px rgba(250,204,21,0.2); }
+            50% { opacity: 0.8; box-shadow: 0 0 30px rgba(250,204,21,0.5); }
+        }
+        .glow-box { animation: pulse-glow 3s infinite; }
+
+        /* ----- SLIDER LOGIC ----- */
+        .presentation-container {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            transform: scale(0.95);
+            padding: 2rem;
+            z-index: 0;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 3rem;
+            z-index: 50;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--accent-yellow);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover {
+            background: rgba(250,204,21,0.2);
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 15px rgba(250,204,21,0.3);
+        }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Progress Dots */
+        .progress-dots { display: flex; gap: 8px; }
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .dot.active {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 8px var(--accent-yellow);
+            transform: scale(1.3);
+        }
+
+        /* Table Specifics for Slide 8 */
+        .custom-table-container {
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        .custom-table-container::-webkit-scrollbar { width: 4px; }
+        .custom-table-container::-webkit-scrollbar-track { background: var(--bg-base); }
+        .custom-table-container::-webkit-scrollbar-thumb { background: var(--accent-yellow); border-radius: 2px; }
+        
+        table th { position: sticky; top: 0; background: var(--card-bg); z-index: 10; box-shadow: 0 1px 0 rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+        
+        <!-- SLIDE 1: PORTADA -->
+        <div class="slide active" id="slide-1">
+            <div class="text-center max-w-5xl mx-auto flex flex-col items-center justify-center mt-8">
+                <div class="mb-14 w-full px-4">
+                    <!-- Fallback if QANTICALOGO.png is not in same folder -->
+                    <img src="QANTICALOGO.png" alt="Qantica Logo" class="w-full h-auto max-h-56 md:max-h-[22rem] object-contain mx-auto drop-shadow-[0_0_40px_rgba(250,204,21,0.25)] hover:scale-105 transition-transform duration-700" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <h1 style="display:none;" class="text-6xl md:text-8xl font-bold tracking-tighter text-white glow-box p-8 rounded-3xl border border-yellow-500/20 bg-black/40">QANTICA</h1>
+                </div>
+                
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
+                    Technology at the service of the <br class="hidden md:block"><span class="text-gradient">creative process</span>
+                </h2>
+                
+                <div class="compartment text-center border-yellow-500/20 bg-[#0c0c0e]/80 backdrop-blur-md mx-auto max-w-4xl shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-yellow-500/40">
+                    <p class="text-base md:text-xl text-gray-300 leading-relaxed font-light">
+                        Qantica is a technology company that deploys <strong class="text-white font-medium">AI and other tools</strong> under the guidance of an experienced media team. Our goal is to partner with creators to empower them and help them maximize the value of their intellectual properties (IPs) using specifically designed tools.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: PROBLEM -->
+        <div class="slide" id="slide-2">
+            <div class="max-w-5xl mx-auto w-full">
+                <div class="mb-8 border-b border-white/10 pb-4">
+                    <span class="text-[10px] text-yellow-500 uppercase tracking-widest block mb-1 font-mono">Market Context</span>
+                    <h2 class="text-4xl font-bold text-white tracking-wide">The <span class="text-red-400">Problem</span></h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-6">
+                        <div class="contract-card border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent">
+                            <h3 class="text-5xl font-bold text-red-500 mb-2">98%</h3>
+                            <h4 class="text-lg text-white font-semibold mb-2">Failure Rate</h4>
+                            <p class="text-sm text-gray-400 leading-relaxed">
+                                Through conversations with many prominent industry people, we realized that the IP/creative process universe is in crisis. Around 98% of the movie projects approved, fail.
+                            </p>
+                            <div class="data-stream !bg-red-500"></div>
+                        </div>
+                        
+                        <div class="compartment border-white/10">
+                            <div class="flex items-start gap-4">
+                                <svg class="w-8 h-8 text-gray-500 shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <div>
+                                    <h4 class="text-base text-white font-semibold mb-1">Decreasing Quality</h4>
+                                    <p class="text-sm text-gray-400">Quality is decreasing, and as a famous producer told us, there is "remote control fatigue".</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compartment h-full flex flex-col justify-center border-yellow-500/20 bg-yellow-500/5 p-8 relative overflow-hidden">
+                        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-yellow-500/10 rounded-full blur-[50px]"></div>
+                        <svg class="w-12 h-12 text-yellow-500 mb-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <h3 class="text-2xl font-bold text-white mb-4 relative z-10">The Neglected Core</h3>
+                        <p class="text-base text-gray-300 leading-relaxed relative z-10">
+                            We believe that creators are the neglected core of the entertainment industry (media, TV, films, games).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: SOLUTION -->
+        <div class="slide" id="slide-3">
+            <div class="max-w-6xl mx-auto w-full">
+                <div class="mb-8 border-b border-white/10 pb-4 text-center">
+                    <span class="text-[10px] text-yellow-500 uppercase tracking-widest block mb-1 font-mono">Value Proposition</span>
+                    <h2 class="text-4xl font-bold text-white tracking-wide">The <span class="text-gradient">Solution</span></h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Column 1 -->
+                    <div class="contract-card flex flex-col h-full group">
+                        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4 text-yellow-500 border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-black transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3">Qantica's Smart System (QSS)</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed flex-grow">
+                            Qantica has developed a technology that allows it to curate, develop and sell IPs maximizing their value by exploring all available distribution channels, from movies to games. At the core is <strong class="text-yellow-400">QIP, our US patented proprietary method</strong>.
+                        </p>
+                        <div class="data-stream"></div>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div class="contract-card flex flex-col h-full group">
+                        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4 text-yellow-500 border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-black transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3">Empowering Creators</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed flex-grow">
+                            We help creators get proper recognition. By giving them a cutting edge method, gaming possibilities, sophisticated development input, a dedicated audience and a targeted auction process, creators extract a larger share. Creators are <strong class="text-white">true bearers of vision</strong>.
+                        </p>
+                        <div class="data-stream"></div>
+                    </div>
+
+                    <!-- Column 3 -->
+                    <div class="contract-card flex flex-col h-full group border-yellow-500/30 bg-[#0c0c0e]">
+                        <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4 text-yellow-500 border border-yellow-500/20 group-hover:bg-yellow-500 group-hover:text-black transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3">AI & Blockchain Infrastructure</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed flex-grow">
+                            Qantica uses both AI and Blockchain to provide a robust infrastructure through QSS. It partners with creators, avoiding IP disputes. It is the <strong class="text-yellow-400">only startup that works with both films/TV and games</strong>. The center of the new paradigm.
+                        </p>
+                        <div class="data-stream"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: WHY NOW -->
+        <div class="slide" id="slide-4">
+            <div class="max-w-4xl mx-auto w-full text-center relative">
+                <!-- Decorative background elements -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-[600px] max-h-[600px] bg-yellow-500/5 rounded-full blur-[80px] -z-10"></div>
+                
+                <span class="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-yellow-500/20 bg-yellow-500/5 text-[10px] font-mono text-yellow-400 tracking-widest uppercase">Timing</span>
+                
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-10 tracking-tight">Why <span class="text-gradient">Now?</span></h2>
+                
+                <div class="space-y-6 text-left compartment border-white/10 bg-black/40 backdrop-blur-md p-8 md:p-10">
+                    <p class="text-lg md:text-xl text-gray-300 leading-relaxed border-l-2 border-yellow-500/50 pl-6">
+                        There has been an increasing focus at the <strong class="text-white">turbulent intersection of streaming services, gaming companies, and content creation</strong>, much of it prompted by recent technological developments and audience frustrations.
+                    </p>
+                    <p class="text-base md:text-lg text-gray-400 leading-relaxed pl-6">
+                        Recent technological development prompted us to imagine how the industry would have started today with all currently available resources, instead of being constrained based on the way Hollywood was developed more than a century ago. 
+                    </p>
+                    <div class="bg-gradient-to-r from-yellow-500/10 to-transparent p-4 rounded-r-lg border-l-2 border-yellow-400 ml-6 mt-4">
+                        <p class="text-yellow-400 font-medium text-lg italic">
+                            "We believe Qantica could be an answer. It represents the revolutionary smart contract of the creative process. The crucial link that completes the IP chain and enhances its quality and market value."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: MARKET SIZE -->
+        <div class="slide" id="slide-5">
+            <div class="max-w-6xl mx-auto w-full">
+                <div class="mb-8 border-b border-white/10 pb-4">
+                    <h2 class="text-4xl font-bold text-white tracking-wide">Market <span class="text-gradient">Size</span></h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    <div class="compartment border-white/10 space-y-6">
+                        <div class="flex items-center gap-4 border-b border-white/5 pb-4">
+                            <div class="w-12 h-12 rounded bg-white/5 flex items-center justify-center font-bold text-xl text-white">🎬</div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">$100Bn+</h3>
+                                <p class="text-xs text-gray-400 uppercase tracking-widest">Annual Movie Industry</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 pb-2">
+                            <div class="w-12 h-12 rounded bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center font-bold text-xl text-yellow-500">🎮</div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-yellow-400">$200Bn+</h3>
+                                <p class="text-xs text-yellow-500/70 uppercase tracking-widest">Global Gaming Industry</p>
+                            </div>
+                        </div>
+                        
+                        <p class="text-sm text-gray-400 leading-relaxed pt-4 border-t border-white/5 mt-4">
+                            We do not see Qantica competing with these companies but <strong class="text-white">partnering by delivering improved content</strong> already reviewed by our audience. Companies on both sides are trying to make inroads into each other's markets.
+                        </p>
+                        <div class="bg-white/5 p-4 rounded-lg border border-white/10">
+                            <p class="text-xs text-gray-300">
+                                Qantica is an <span class="text-yellow-400 font-semibold">agnostic curator of valuable IPs</span> that will be automatically reviewed for both movies and games potential, making us a valuable supplier to all participants.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FOTO 1 Container -->
+                    <div class="compartment p-2 border-yellow-500/20 bg-[#070707] glow-box group">
+                        <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center">
+                            <img src="FOTO1.png" alt="Market Size Visual" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <!-- Fallback UI if image missing -->
+                            <div style="display:none;" class="flex-col items-center justify-center text-gray-600">
+                                <svg class="w-16 h-16 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="text-xs uppercase tracking-widest">FOTO1.png</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: COMPETITION -->
+        <div class="slide" id="slide-6">
+            <div class="max-w-6xl mx-auto w-full">
+                <div class="mb-8 border-b border-white/10 pb-4 text-right">
+                    <h2 class="text-4xl font-bold text-white tracking-wide">The <span class="text-gradient">Competition</span></h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    
+                    <!-- FOTO 2 Container -->
+                    <div class="compartment p-2 border-yellow-500/20 bg-[#070707] glow-box group order-2 lg:order-1">
+                        <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center">
+                            <img src="FOTO2.png" alt="Competition Visual" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <!-- Fallback UI if image missing -->
+                            <div style="display:none;" class="flex-col items-center justify-center text-gray-600">
+                                <svg class="w-16 h-16 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+                                <span class="text-xs uppercase tracking-widest">FOTO2.png</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="compartment border-white/10 order-1 lg:order-2 h-full flex flex-col justify-center">
+                        <div class="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded bg-white/5 border border-white/10 w-fit">
+                            <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            <span class="text-xs font-semibold text-gray-300 tracking-wide">Unique Positioning</span>
+                        </div>
+                        
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed mb-6">
+                            Qantica uses both <strong class="text-white">AI and Blockchain</strong> to provide a more robust and comprehensive infrastructure through QSS.
+                        </p>
+                        
+                        <ul class="space-y-4 mb-6">
+                            <li class="flex items-start gap-3">
+                                <span class="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-500 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+                                <span class="text-sm text-gray-400">Partners with the creators, avoiding costly IP disputes.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="w-5 h-5 rounded-full bg-yellow-500/20 text-yellow-500 flex items-center justify-center shrink-0 mt-0.5 text-xs">✓</span>
+                                <span class="text-sm text-gray-400">The <strong class="text-white">only one current startup</strong> that works with both films/TV and games.</span>
+                            </li>
+                        </ul>
+
+                        <div class="mt-auto p-4 border border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-lg">
+                            <p class="text-yellow-400 font-semibold text-sm">
+                                Therefore, we see Qantica at the center of the new industry paradigm.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: PRODUCT -->
+        <div class="slide" id="slide-7">
+            <div class="max-w-5xl mx-auto w-full text-center">
+                <div class="mb-10">
+                    <span class="text-[10px] text-yellow-500 uppercase tracking-widest block mb-1 font-mono">Core Technology</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-white tracking-wide">The <span class="text-gradient">Product</span></h2>
+                </div>
+
+                <!-- Main Product Diagram -->
+                <div class="relative p-[2px] rounded-2xl bg-gradient-to-b from-yellow-500/30 via-transparent to-white/10 inline-block w-full max-w-3xl text-left">
+                    <div class="bg-[#0c0c0e] rounded-[14px] p-8 md:p-10 relative overflow-hidden h-full">
+                        <!-- BG Effect -->
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+
+                        <div class="flex flex-col md:flex-row items-center gap-8 mb-8">
+                            <div class="w-24 h-24 shrink-0 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-black font-extrabold text-2xl shadow-[0_0_30px_rgba(250,204,21,0.3)]">
+                                QSS
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white mb-2">Qantica's Smart System</h3>
+                                <p class="text-sm text-gray-400 leading-relaxed">
+                                    Curates, develops and sells IPs maximizing their value by exploring all available distribution channels, from movies to games. 
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-white/10 pt-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="bg-white/5 border border-white/10 p-3 rounded-lg flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
+                                    <p class="text-[11px] text-gray-300">Activates and runs <strong class="text-yellow-400">QIP (US patented method)</strong></p>
+                                </div>
+                                <div class="bg-white/5 border border-white/10 p-3 rounded-lg flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
+                                    <p class="text-[11px] text-gray-300">Determines <strong class="text-white">gaming potential</strong> of IPs</p>
+                                </div>
+                                <div class="bg-white/5 border border-white/10 p-3 rounded-lg flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
+                                    <p class="text-[11px] text-gray-300">Runs development suggestions (budgeting, music, merchandising)</p>
+                                </div>
+                                <div class="bg-white/5 border border-white/10 p-3 rounded-lg flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
+                                    <p class="text-[11px] text-gray-300">Market targeting & presentation to audience <strong class="text-white">auctions</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: BUSINESS MODEL -->
+        <div class="slide" id="slide-8">
+            <div class="w-full max-w-6xl mx-auto flex flex-col h-[85vh]">
+                <div class="mb-4 flex-shrink-0">
+                    <span class="text-[10px] text-yellow-500 uppercase tracking-widest block font-mono">Financial Projections</span>
+                    <h2 class="text-3xl font-bold text-white tracking-wide">Business <span class="text-gradient">Model</span></h2>
+                </div>
+
+                <div class="compartment border-white/10 p-1 flex-grow overflow-hidden flex flex-col bg-[#070707]">
+                    <div class="custom-table-container flex-grow p-4 rounded-xl">
+                        <table class="w-full text-left text-[10px] text-gray-300 whitespace-nowrap">
+                            <thead class="text-xs text-yellow-500 font-semibold uppercase bg-[#0c0c0e]">
+                                <tr>
+                                    <th class="p-3 border-b border-yellow-500/20">Metric</th>
+                                    <th class="p-3 border-b border-yellow-500/20 text-right">Year 1</th>
+                                    <th class="p-3 border-b border-yellow-500/20 text-right">Year 2</th>
+                                    <th class="p-3 border-b border-yellow-500/20 text-right">Year 3</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                <!-- Volume Metrics -->
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="p-2.5 font-medium text-white">IPs entering Q</td>
+                                    <td class="p-2.5 text-right">18,000</td>
+                                    <td class="p-2.5 text-right">18,000</td>
+                                    <td class="p-2.5 text-right">24,000</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400">
+                                    <td class="p-2.5 pl-6">IPs entering the Method</td>
+                                    <td class="p-2.5 text-right">6,000</td><td class="p-2.5 text-right">6,000</td><td class="p-2.5 text-right">7,800</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400">
+                                    <td class="p-2.5 pl-6">Curated IPs entering Dashboard</td>
+                                    <td class="p-2.5 text-right">5,000</td><td class="p-2.5 text-right">6,000</td><td class="p-2.5 text-right">7,800</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400">
+                                    <td class="p-2.5 pl-6">IPs going to auction</td>
+                                    <td class="p-2.5 text-right">4,500</td><td class="p-2.5 text-right">6,000</td><td class="p-2.5 text-right">7,350</td>
+                                </tr>
+                                <tr class="hover:bg-yellow-500/5 bg-yellow-500/5 transition-colors border-t border-yellow-500/10">
+                                    <td class="p-2.5 font-semibold text-yellow-400">IPs sold</td>
+                                    <td class="p-2.5 text-right text-yellow-400 font-semibold">172</td>
+                                    <td class="p-2.5 text-right text-yellow-400 font-semibold">280</td>
+                                    <td class="p-2.5 text-right text-yellow-400 font-semibold">330</td>
+                                </tr>
+
+                                <!-- Revenue Block 1 -->
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5 pl-6">Revenue US</td><td class="p-2.5 text-right">$ 1,500,000</td><td class="p-2.5 text-right">$ 1,750,000</td><td class="p-2.5 text-right">$ 2,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5 pl-6">Revenue Europe</td><td class="p-2.5 text-right">$ 200,000</td><td class="p-2.5 text-right">$ 250,000</td><td class="p-2.5 text-right">$ 275,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5 pl-6">Revenue Latam</td><td class="p-2.5 text-right">$ 75,000</td><td class="p-2.5 text-right">$ 100,000</td><td class="p-2.5 text-right">$ 125,000</td></tr>
+                                
+                                <tr class="hover:bg-white/5 transition-colors border-t border-white/10 mt-2">
+                                    <td class="p-2.5 font-medium text-white">IPs recycled</td>
+                                    <td class="p-2.5 text-right">22</td><td class="p-2.5 text-right">58</td><td class="p-2.5 text-right">80</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue US</td><td class="p-2.5 text-right">$ 750,000</td><td class="p-2.5 text-right">$ 1,050,000</td><td class="p-2.5 text-right">$ 1,200,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Europe</td><td class="p-2.5 text-right">$ 100,000</td><td class="p-2.5 text-right">$ 150,000</td><td class="p-2.5 text-right">$ 165,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Latam</td><td class="p-2.5 text-right">$ 37,500</td><td class="p-2.5 text-right">$ 60,000</td><td class="p-2.5 text-right">$ 75,000</td></tr>
+
+                                <!-- Other IP Channels -->
+                                <tr class="hover:bg-white/5 transition-colors border-t border-white/10">
+                                    <td class="p-2.5">IPs Going to YouTube</td><td class="p-2.5 text-right">4,805</td><td class="p-2.5 text-right">5,680</td><td class="p-2.5 text-right">7,385</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5">IP's going to Crowdfunding</td><td class="p-2.5 text-right">48</td><td class="p-2.5 text-right">57</td><td class="p-2.5 text-right">80</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Fee</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 9,600,000</td><td class="p-2.5 text-right">$ 11,600,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue US</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 21,600,000</td><td class="p-2.5 text-right">$ 29,400,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Europe</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 1,920,000</td><td class="p-2.5 text-right">$ 2,800,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Latam</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 1,800,000</td><td class="p-2.5 text-right">$ 2,800,000</td></tr>
+
+                                <!-- Returning for Auction -->
+                                <tr class="hover:bg-white/5 transition-colors border-t border-white/10">
+                                    <td class="p-2.5">IP's returning for auction</td><td class="p-2.5 text-right">48</td><td class="p-2.5 text-right">57</td><td class="p-2.5 text-right">80</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue US</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 25,200,000</td><td class="p-2.5 text-right">$ 34,200,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Europe</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 2,400,000</td><td class="p-2.5 text-right">$ 3,135,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Revenue Latam</td><td class="p-2.5 text-right">-</td><td class="p-2.5 text-right">$ 2,400,000</td><td class="p-2.5 text-right">$ 3,562,500</td></tr>
+
+                                <!-- TOTALS -->
+                                <tr class="bg-gradient-to-r from-transparent via-green-900/20 to-transparent font-bold text-green-400 border-t border-green-500/30">
+                                    <td class="p-3">Total Revenue</td>
+                                    <td class="p-3 text-right">$ 84,927,522</td>
+                                    <td class="p-3 text-right">$ 187,472,580</td>
+                                    <td class="p-3 text-right">$ 282,165,138</td>
+                                </tr>
+
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5">IPS accumulating in the system</td><td class="p-2.5 text-right">4,709</td><td class="p-2.5 text-right">10,275</td><td class="p-2.5 text-right">17,512</td></tr>
+                                
+                                <!-- Costs -->
+                                <tr class="hover:bg-white/5 transition-colors border-t border-white/10"><td class="p-2.5 text-red-400/80">Cost of Method</td><td class="p-2.5 text-right text-red-400/80">$ 12,000,000</td><td class="p-2.5 text-right text-red-400/80">$ 12,000,000</td><td class="p-2.5 text-right text-red-400/80">$ 15,600,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-2.5 font-medium text-white">Total payments to creators</td><td></td><td></td><td></td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Cost US</td><td class="p-2.5 text-right">$ 25,357,500</td><td class="p-2.5 text-right">$ 61,257,000</td><td class="p-2.5 text-right">$ 81,154,528</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Cost Europe</td><td class="p-2.5 text-right">$ 2,254,000</td><td class="p-2.5 text-right">$ 5,775,000</td><td class="p-2.5 text-right">$ 17,578,750</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-gray-400"><td class="p-2.5 pl-6">Cost Latam</td><td class="p-2.5 text-right">$ 2,113,125</td><td class="p-2.5 text-right">$ 5,723,375</td><td class="p-2.5 text-right">$ 9,228,625</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-red-400/80"><td class="p-2.5">Cost of Operation</td><td class="p-2.5 text-right">$ 12,000,000</td><td class="p-2.5 text-right">$ 15,000,000</td><td class="p-2.5 text-right">$ 20,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-red-400/80"><td class="p-2.5">Marketing</td><td class="p-2.5 text-right">$ 2,500,000</td><td class="p-2.5 text-right">$ 5,000,000</td><td class="p-2.5 text-right">$ 5,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors text-red-400/80"><td class="p-2.5">Other costs</td><td class="p-2.5 text-right">$ 1,500,000</td><td class="p-2.5 text-right">$ 2,500,000</td><td class="p-2.5 text-right">$ 4,000,000</td></tr>
+                                
+                                <tr class="bg-red-900/10 font-medium text-red-300 border-t border-red-500/20">
+                                    <td class="p-2.5">Total costs</td>
+                                    <td class="p-2.5 text-right">$ 57,724,625</td>
+                                    <td class="p-2.5 text-right">$ 107,255,375</td>
+                                    <td class="p-2.5 text-right">$ 152,561,903</td>
+                                </tr>
+
+                                <!-- NET REVENUE -->
+                                <tr class="bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent font-bold text-yellow-400 border-t-2 border-yellow-500 mt-2">
+                                    <td class="p-4 text-sm">Net Revenue</td>
+                                    <td class="p-4 text-right text-sm">$ 27,202,897</td>
+                                    <td class="p-4 text-right text-sm">$ 80,217,205</td>
+                                    <td class="p-4 text-right text-sm">$ 129,603,235</td>
+                                </tr>
+                                <tr class="bg-black/40 text-gray-500 text-[9px]">
+                                    <td class="p-2">Minimum cummulative</td>
+                                    <td class="p-2 text-right">$ (7,000,000)</td>
+                                    <td></td><td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <div class="controls">
+        <button class="nav-btn" id="prevBtn" onclick="prevSlide()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        
+        <div class="progress-dots" id="dotsContainer">
+            <!-- Dots generated by JS -->
+        </div>
+
+        <button class="nav-btn" id="nextBtn" onclick="nextSlide()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        // Create dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('dot');
+            if (index === 0) dot.classList.add('active');
+            dot.onclick = () => goToSlide(index);
+            dotsContainer.appendChild(dot);
+        });
+        const dots = document.querySelectorAll('.dot');
+
+        function updateUI() {
+            // Update slides
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateUI();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateUI();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateUI();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>
