@@ -8,32 +8,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #050505;
-            --card-bg: #0a0a0c;
+            --bg-black: #050505;
+            --bg-charcoal: #111113;
+            --bg-slate: #1a1a1e;
             --accent-yellow: #FACC15;
-            --accent-dim: rgba(250, 204, 21, 0.1);
-            --border-light: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(250, 204, 21, 0.3);
-            --text-gray: #9CA3AF;
+            --accent-glow: rgba(250, 204, 21, 0.4);
+            --glass-border-light: rgba(255, 255, 255, 0.1);
+            --glass-border-strong: rgba(255, 255, 255, 0.25);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-base);
+            background-color: var(--bg-black);
             color: #F3F4F6;
-            overflow: hidden; /* Prevent scrolling for app-like presentation feel */
+            overflow: hidden; 
             -webkit-tap-highlight-color: transparent;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.02) 0%, transparent 50%),
-                radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
-            background-attachment: fixed;
             height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
+            margin: 0;
         }
 
-        /* Canvas Background */
+        /* Canvas Background para Partículas */
         #particle-canvas {
             position: fixed;
             top: 0;
@@ -44,42 +41,46 @@
             pointer-events: none;
         }
 
-        /* Compartimentos Modernos y Minimalistas */
-        .compartment {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(8px);
-        }
-        @media (min-width: 768px) {
-            .compartment { padding: 2rem; }
-        }
-        .compartment.interactive:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-        }
-
-        /* ----- TARJETAS CLEAN ----- */
-        .contract-card {
+        /* ----- GLASSMORPHISM (Efecto Espejo Premium) ----- */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            /* Espejo direccional en bordes */
+            border-top: 1px solid var(--glass-border-strong);
+            border-left: 1px solid var(--glass-border-light);
+            box-shadow: 
+                0 20px 40px -10px rgba(0, 0, 0, 0.8), 
+                inset 0 1px 2px rgba(255,255,255,0.1);
+            border-radius: 16px;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        @media (min-width: 768px) {
-            .contract-card { padding: 2rem; }
+        
+        /* Brillo interno dinámico */
+        .glass-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -150%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.7s ease;
+            pointer-events: none;
         }
-        .contract-card:hover {
-            border-color: rgba(250, 204, 21, 0.4);
-            background: linear-gradient(180deg, rgba(250, 204, 21, 0.03) 0%, rgba(255,255,255,0) 100%);
+        .glass-panel:hover::after {
+            left: 150%;
+        }
+
+        .glass-panel.interactive:hover {
+            border-color: rgba(250, 204, 21, 0.3);
+            border-top-color: rgba(250, 204, 21, 0.6);
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.9), 
+                0 0 30px rgba(250, 204, 21, 0.1);
         }
 
         /* Gradientes Elegantes */
@@ -87,17 +88,17 @@
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-image: linear-gradient(90deg, #fef08a, #eab308);
+            background-image: linear-gradient(90deg, #fef08a, #eab308, #ca8a04);
         }
 
-        /* ----- SLIDER LOGIC & MOBILE OPTIMIZATION ----- */
+        /* ----- SLIDER LOGIC ----- */
         .presentation-container {
             flex-grow: 1;
             position: relative;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            z-index: 10; /* Encima del canvas */
+            z-index: 10; 
         }
 
         .slide {
@@ -107,28 +108,27 @@
             flex-direction: column;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            transform: translateY(20px);
+            /* Apple Keynote style transition */
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform: scale(0.95) translateY(30px);
             z-index: 0;
-            
-            /* Mobile adjustments */
             justify-content: flex-start;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 1.5rem 1rem 6rem 1rem; 
+            padding: 2.5rem 1rem 6rem 1rem; 
         }
         
         @media (min-width: 768px) {
             .slide {
                 justify-content: center;
-                padding: 2rem 3rem 5rem 3rem;
+                padding: 3rem 4rem 5rem 4rem;
             }
         }
 
         .slide.active {
             opacity: 1;
             visibility: visible;
-            transform: translateY(0);
+            transform: scale(1) translateY(0);
             z-index: 10;
         }
 
@@ -139,7 +139,24 @@
             margin-top: auto;
             margin-bottom: auto;
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
+
+        /* Orbes de luz ambiental (para dar vida al cristal) */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Temas de Fondo de las Diapositivas */
+        .bg-theme-black { background-color: var(--bg-black); }
+        .bg-theme-charcoal { background: radial-gradient(circle at 50% 50%, var(--bg-charcoal) 0%, var(--bg-black) 100%); }
+        .bg-theme-slate { background: linear-gradient(135deg, var(--bg-slate) 0%, var(--bg-black) 100%); }
 
         /* Controles Inferiores */
         .controls {
@@ -149,172 +166,189 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 1rem;
+            padding: 1rem 1.5rem;
             z-index: 50;
-            background: linear-gradient(to top, rgba(5,5,5,0.95) 40%, transparent);
+            background: linear-gradient(to top, rgba(3,3,3,0.95) 20%, transparent);
+            pointer-events: none; 
         }
+        .controls > * { pointer-events: auto; } 
+
         @media (min-width: 768px) {
-            .controls {
-                padding: 1.5rem 3rem;
-                background: linear-gradient(to top, rgba(5,5,5,0.8) 0%, transparent);
-            }
+            .controls { padding: 1.5rem 4rem; }
         }
+
         .nav-btn {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.1);
             color: var(--text-gray);
-            width: 40px; height: 40px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer;
-            transition: all 0.3s;
-            backdrop-filter: blur(4px);
-        }
-        @media (min-width: 768px) {
-            .nav-btn { width: 44px; height: 44px; }
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(8px);
         }
         .nav-btn:hover {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.1);
+            color: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.2);
         }
 
-        /* Puntos de Progreso Minimalistas */
-        .progress-dots { display: flex; gap: 8px; }
-        @media (min-width: 768px) { .progress-dots { gap: 10px; } }
-        
+        /* Puntos de Progreso */
+        .progress-dots { display: flex; gap: 10px; }
         .dot {
-            width: 6px; height: 6px;
+            width: 8px; height: 8px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .dot.active {
             background: var(--accent-yellow);
-            transform: scale(1.5);
+            transform: scale(1.8);
+            box-shadow: 0 0 12px var(--accent-glow);
         }
 
-        /* Estilos de Tabla Optimizados */
+        /* Fixed Header */
+        .corporate-header {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0.8;
+        }
+        @media (min-width: 768px) { .corporate-header { top: 2.5rem; right: 3rem; } }
+
+        /* Estilos de Tabla Optimizados para Dark Mode */
         .custom-table-container {
             overflow-y: auto;
             overflow-x: auto;
-            max-height: 55vh;
+            max-height: 65vh;
             -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
         }
-        @media (min-width: 768px) {
-            .custom-table-container { max-height: 65vh; }
-        }
-        .custom-table-container::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-table-container::-webkit-scrollbar-track { background: transparent; }
-        .custom-table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+        .custom-table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .custom-table-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .custom-table-container::-webkit-scrollbar-thumb:hover { background: var(--accent-yellow); }
         
-        table th { position: sticky; top: 0; background: var(--bg-base); z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        
-        /* Contenedores de Imágenes */
-        .image-container {
+        /* Celdas fijas con fondo oscuro estricto para evitar superposición visual */
+        table th { position: sticky; top: 0; background: #111113; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        table td.sticky-col { position: sticky; left: 0; background: #111113; z-index: 10; border-right: 1px solid rgba(255,255,255,0.05); }
+        table tr:hover td.sticky-col { background: #1a1a1e; }
+
+        /* Fallback Container robusto para imágenes */
+        .image-fallback-container {
             width: 100%;
-            height: 220px;
+            height: 100%;
+            min-height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.5));
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 1rem;
-            backdrop-filter: blur(4px);
+            border: 1px dashed rgba(255,255,255,0.1);
         }
-        @media (min-width: 768px) {
-            .image-container {
-                height: 100%;
-                min-height: 300px;
-            }
-        }
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+        @media (min-width: 768px) { .image-fallback-container { min-height: 350px; } }
     </style>
 </head>
 <body>
 
-    <!-- FONDO DE UNIVESO SUTIL (Partículas) -->
+    <!-- FONDO DE UNIVERSO -->
     <canvas id="particle-canvas"></canvas>
+
+    <!-- HEADER CORPORATIVO FIJO -->
+    <div class="corporate-header">
+        <span class="text-[10px] md:text-xs uppercase tracking-widest text-gray-400 font-mono font-medium">2026</span>
+        <div class="w-8 md:w-12 h-px bg-gray-500/50"></div>
+    </div>
 
     <div class="presentation-container">
         
-        <!-- SLIDE 1: PORTADA MINIMALISTA -->
-        <div class="slide active" id="slide-1">
-            <div class="slide-content h-full flex flex-col items-center justify-center overflow-visible">
+        <!-- SLIDE 1: PORTADA ABSOLUTA (BLACK) -->
+        <div class="slide active bg-theme-black" id="slide-1" style="padding: 0;">
+            <!-- Contenedor general centrado perfecto -->
+            <div class="w-full h-full flex flex-col items-center justify-center relative pb-16 md:pb-12 pt-4 px-4">
                 
+                <!-- Ambient Orbs centrados -->
+                <div class="ambient-orb bg-yellow-500/15 w-[80vw] h-[80vw] md:w-[600px] md:h-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute"></div>
+
                 <!-- LOGO ENORME -->
-                <div class="w-full flex-grow flex items-center justify-center mb-4 px-2 relative overflow-visible z-0">
-                    <img src="QANTICALOGO.png" alt="Qantica" class="w-full h-auto max-h-[40vh] md:max-h-[50vh] object-contain transform scale-110 md:scale-[1.8] origin-center" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <!-- Text fallback por si el logo no carga temporalmente -->
-                    <h1 style="display:none;" class="text-6xl md:text-[160px] font-bold tracking-tight text-white mb-8 transform md:scale-125">QANTICA</h1>
+                <div class="w-full flex-grow flex items-center justify-center relative z-10">
+                    <img src="QANTICALOGO.png" alt="Qantica Logo" class="w-[95%] md:w-full max-w-[1200px] h-auto max-h-[50vh] md:max-h-[60vh] object-contain transform scale-110 md:scale-[1.6] origin-center filter drop-shadow-[0_0_50px_rgba(250,204,21,0.25)] transition-transform duration-700 hover:scale-125 md:hover:scale-[1.7]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    
+                    <!-- Text fallback corporativo (por si no hay imagen) -->
+                    <div style="display:none;" class="flex flex-col items-center justify-center">
+                        <h1 class="text-6xl md:text-[140px] font-black tracking-tighter text-white mb-2 text-gradient transform md:scale-125" style="line-height: 0.9;">QANTICA</h1>
+                        <div class="w-1/3 h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent mt-4"></div>
+                    </div>
                 </div>
                 
-                <!-- Textos Inferiores Corporativos y Limpios -->
-                <div class="text-center max-w-4xl pb-4 relative z-10 bg-[#0a0a0c]/70 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] -mt-6 md:-mt-20">
-                    
-                    <!-- Etiqueta 2026 Destacada -->
-                    <div class="inline-flex items-center gap-2 px-4 py-1.5 md:px-5 md:py-2 mb-4 md:mb-6 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-xs md:text-sm font-mono text-yellow-400 tracking-widest shadow-[0_0_15px_rgba(250,204,21,0.15)]">
-                        <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                        EDICIÓN 2026
-                    </div>
-
-                    <h2 class="text-lg md:text-2xl font-light text-gray-300 mb-4 md:mb-6 tracking-wide">
+                <!-- Textos Inferiores (Glass Panel) -->
+                <div class="glass-panel text-center max-w-4xl p-6 md:p-10 z-20 w-full shrink-0 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative -mt-8 md:-mt-24">
+                    <h2 class="text-lg md:text-3xl font-light text-gray-200 mb-4 md:mb-6 tracking-wide">
                         Technology at the service of the <span class="text-white font-medium">creative process</span>
                     </h2>
                     
+                    <div class="w-16 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto mb-4 md:mb-6"></div>
+
                     <p class="text-xs md:text-base text-gray-400 leading-relaxed font-light">
                         Qantica is a technology company that deploys <strong class="text-white font-medium">AI and other tools</strong> under the guidance of an experienced media team. Our goal is to partner with creators to empower them and help them maximize the value of their intellectual properties (IPs) using specifically designed tools.
                     </p>
                 </div>
+
             </div>
         </div>
 
-        <!-- SLIDE 2: PROBLEM -->
-        <div class="slide" id="slide-2">
+        <!-- SLIDE 2: PROBLEM (CHARCOAL) -->
+        <div class="slide bg-theme-charcoal" id="slide-2">
+            <!-- Ambient Orbs -->
+            <div class="ambient-orb bg-red-500/10 w-[500px] h-[500px] -top-20 -left-20"></div>
+
             <div class="slide-content max-w-5xl">
-                <div class="mb-6 md:mb-10">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-semibold">Market Context</span>
-                    <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">The <span class="font-semibold">Problem</span></h2>
+                <div class="mb-6 md:mb-12 border-b border-white/10 pb-4">
+                    <span class="text-[10px] text-yellow-500/80 uppercase tracking-widest block mb-1 md:mb-2 font-mono">Market Context</span>
+                    <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">The <span class="font-semibold text-white">Problem</span></h2>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-stretch">
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="contract-card border-red-900/30">
-                            <div class="flex items-center gap-4 mb-3 md:mb-4">
-                                <h3 class="text-5xl md:text-6xl font-light text-white">98<span class="text-red-500">%</span></h3>
-                                <div class="w-px h-10 md:h-12 bg-white/10"></div>
-                                <h4 class="text-xs md:text-sm text-gray-400 uppercase tracking-wider font-semibold">Failure Rate</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8 items-stretch">
+                    <div class="space-y-5 md:space-y-6">
+                        <div class="glass-panel border-t-red-500/50 p-6 md:p-8">
+                            <div class="flex items-center gap-4 mb-4 md:mb-6">
+                                <h3 class="text-5xl md:text-7xl font-light text-white">98<span class="text-red-500/90 text-4xl md:text-5xl">%</span></h3>
+                                <div class="w-px h-12 md:h-16 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+                                <h4 class="text-xs md:text-sm text-gray-300 uppercase tracking-widest font-medium">Failure Rate</h4>
                             </div>
-                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed">
+                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed font-light">
                                 Through conversations with many prominent industry people, we realized that the IP/creative process universe is in crisis. Around 98% of the movie projects approved, fail.
                             </p>
                         </div>
                         
-                        <div class="compartment">
+                        <div class="glass-panel p-5 md:p-6">
                             <div class="flex items-start gap-4">
-                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
+                                    <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
                                 </div>
                                 <div>
                                     <h4 class="text-sm md:text-base text-white font-medium mb-1">Decreasing Quality</h4>
-                                    <p class="text-xs md:text-sm text-gray-400 leading-relaxed">Quality is decreasing, and as a famous producer told us, there is "remote control fatigue".</p>
+                                    <p class="text-xs md:text-sm text-gray-400 leading-relaxed font-light">Quality is decreasing, and as a famous producer told us, there is "remote control fatigue".</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="compartment flex flex-col justify-center border-yellow-500/20 bg-gradient-to-br from-[#121210] to-transparent">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-yellow-500/10 flex items-center justify-center mb-4 md:mb-6">
-                            <svg class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <div class="glass-panel interactive p-6 md:p-10 flex flex-col justify-center border-l-4 border-l-yellow-500/50 relative overflow-hidden">
+                        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl z-0"></div>
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 flex items-center justify-center mb-6 relative z-10 shadow-[inset_0_1px_1px_rgba(250,204,21,0.3)]">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </div>
-                        <h3 class="text-xl md:text-2xl font-medium text-white mb-2 md:mb-4">The Neglected Core</h3>
-                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed">
+                        <h3 class="text-xl md:text-3xl font-light text-white mb-3 md:mb-4 relative z-10">The Neglected Core</h3>
+                        <p class="text-xs md:text-base text-gray-400 leading-relaxed font-light relative z-10">
                             We believe that creators are the neglected core of the entertainment industry (media, TV, films, games).
                         </p>
                     </div>
@@ -322,66 +356,71 @@
             </div>
         </div>
 
-        <!-- SLIDE 3: SOLUTION -->
-        <div class="slide" id="slide-3">
+        <!-- SLIDE 3: SOLUTION (SLATE) -->
+        <div class="slide bg-theme-slate" id="slide-3">
+            <!-- Ambient Orbs -->
+            <div class="ambient-orb bg-yellow-500/10 w-[600px] h-[300px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
             <div class="slide-content max-w-6xl">
-                <div class="mb-6 md:mb-10 text-center">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-semibold">Value Proposition</span>
+                <div class="mb-8 md:mb-12 border-b border-white/10 pb-4 text-center relative z-10">
+                    <span class="text-[10px] text-yellow-500/80 uppercase tracking-widest block mb-1 md:mb-2 font-mono">Value Proposition</span>
                     <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">The <span class="font-semibold text-gradient">Solution</span></h2>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                    <!-- Column 1 -->
-                    <div class="contract-card flex flex-col h-full">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-4 md:mb-6 text-white">
-                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8 relative z-10">
+                    <div class="glass-panel interactive p-6 md:p-8 flex flex-col h-full">
+                        <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-white shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
                         </div>
-                        <h3 class="text-base md:text-lg font-medium text-white mb-2 md:mb-3">Qantica's Smart System (QSS)</h3>
-                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow">
-                            Qantica has developed a technology that allows it to curate, develop and sell IPs maximizing their value by exploring all available distribution channels, from movies to games. At the core is <strong class="text-white">QIP, our US patented proprietary method</strong>.
+                        <h3 class="text-lg md:text-xl font-medium text-white mb-3">Qantica's Smart System</h3>
+                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow font-light">
+                            Qantica has developed a technology that allows it to curate, develop and sell IPs maximizing their value by exploring all available distribution channels, from movies to games. At the core is <strong class="text-white font-medium">QIP, our US patented proprietary method</strong>.
                         </p>
                     </div>
 
-                    <!-- Column 2 -->
-                    <div class="contract-card flex flex-col h-full">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-4 md:mb-6 text-white">
-                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div class="glass-panel interactive p-6 md:p-8 flex flex-col h-full">
+                        <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 text-white shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
-                        <h3 class="text-base md:text-lg font-medium text-white mb-2 md:mb-3">Empowering Creators</h3>
-                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow">
-                            We help creators get proper recognition. By giving them a cutting edge method, gaming possibilities, sophisticated development input, a dedicated audience and a targeted auction process, creators extract a larger share. Creators are <strong class="text-white">true bearers of vision</strong>.
+                        <h3 class="text-lg md:text-xl font-medium text-white mb-3">Empowering Creators</h3>
+                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow font-light">
+                            We help creators get proper recognition. By giving them a cutting edge method, gaming possibilities, sophisticated development input, a dedicated audience and a targeted auction process, creators extract a larger share. Creators are <strong class="text-white font-medium">true bearers of vision</strong>.
                         </p>
                     </div>
 
-                    <!-- Column 3 -->
-                    <div class="contract-card flex flex-col h-full border-yellow-500/20 bg-[#0c0c0e]">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mb-4 md:mb-6 text-yellow-500">
-                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <div class="glass-panel interactive p-6 md:p-8 flex flex-col h-full border-t-yellow-500/50">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 flex items-center justify-center mb-6 text-yellow-400 shadow-[inset_0_1px_1px_rgba(250,204,21,0.3)]">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         </div>
-                        <h3 class="text-base md:text-lg font-medium text-white mb-2 md:mb-3">AI & Blockchain Infrastructure</h3>
-                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow">
-                            Qantica uses both AI and Blockchain to provide a robust infrastructure through QSS. It partners with creators, avoiding IP disputes. It is the <strong class="text-yellow-400">only startup that works with both films/TV and games</strong>.
+                        <h3 class="text-lg md:text-xl font-medium text-white mb-3">AI & Blockchain</h3>
+                        <p class="text-xs md:text-sm text-gray-400 leading-relaxed flex-grow font-light">
+                            Qantica uses both AI and Blockchain to provide a robust infrastructure through QSS. It partners with creators, avoiding IP disputes. It is the <strong class="text-white font-medium border-b border-yellow-500/30 pb-0.5">only startup that works with both films/TV and games</strong>.
                         </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SLIDE 4: WHY NOW -->
-        <div class="slide" id="slide-4">
-            <div class="slide-content max-w-4xl text-center">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-semibold">Timing</span>
-                <h2 class="text-4xl md:text-6xl font-light text-white mb-8 md:mb-12 tracking-tight">Why <span class="font-semibold text-gradient">Now?</span></h2>
+        <!-- SLIDE 4: WHY NOW (CHARCOAL) -->
+        <div class="slide bg-theme-charcoal" id="slide-4">
+            <!-- Ambient Orbs -->
+            <div class="ambient-orb bg-yellow-500/5 w-[800px] h-[800px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+            <div class="slide-content max-w-4xl text-center relative z-10">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-2 font-mono">Timing</span>
+                <h2 class="text-4xl md:text-6xl font-light text-white mb-10 md:mb-14 tracking-tight">Why <span class="font-semibold text-gradient">Now?</span></h2>
                 
-                <div class="space-y-6 md:space-y-8 text-left compartment border-white/5 bg-[#0a0a0c]/60 p-6 md:p-10">
-                    <p class="text-base md:text-xl text-gray-300 leading-relaxed font-light">
+                <div class="glass-panel p-6 md:p-12 text-left">
+                    <p class="text-base md:text-xl text-gray-300 leading-relaxed font-light mb-6">
                         There has been an increasing focus at the <strong class="text-white font-medium">turbulent intersection of streaming services, gaming companies, and content creation</strong>, much of it prompted by recent technological developments and audience frustrations.
                     </p>
                     <p class="text-sm md:text-lg text-gray-400 leading-relaxed font-light">
                         Recent technological development prompted us to imagine how the industry would have started today with all currently available resources, instead of being constrained based on the way Hollywood was developed more than a century ago. 
                     </p>
-                    <div class="border-l-2 border-yellow-500 pl-4 md:pl-6 py-2 mt-6 md:mt-8 bg-gradient-to-r from-yellow-500/5 to-transparent">
-                        <p class="text-white font-medium text-sm md:text-lg leading-relaxed py-2">
+                    
+                    <div class="relative mt-8 md:mt-12 bg-white/5 rounded-xl border border-white/10 p-5 md:p-8">
+                        <div class="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-l-xl"></div>
+                        <p class="text-gray-200 font-light text-sm md:text-xl leading-relaxed italic">
                             "We believe Qantica could be an answer. It represents the revolutionary smart contract of the creative process. The crucial link that completes the IP chain and enhances its quality and market value."
                         </p>
                     </div>
@@ -389,99 +428,108 @@
             </div>
         </div>
 
-        <!-- SLIDE 5: MARKET SIZE -->
-        <div class="slide" id="slide-5">
-            <div class="slide-content max-w-6xl h-full flex flex-col justify-center">
-                <div class="mb-6 md:mb-8 border-b border-white/5 pb-4">
+        <!-- SLIDE 5: MARKET SIZE (BLACK) -->
+        <div class="slide bg-theme-black" id="slide-5">
+            <!-- Ambient Orbs -->
+            <div class="ambient-orb bg-blue-500/10 w-[400px] h-[400px] top-0 left-0"></div>
+            <div class="ambient-orb bg-yellow-500/10 w-[400px] h-[400px] bottom-0 right-0"></div>
+
+            <div class="slide-content max-w-6xl h-full flex flex-col justify-center relative z-10">
+                <div class="mb-6 md:mb-10 border-b border-white/10 pb-4">
                     <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">Market <span class="font-semibold text-gradient">Size</span></h2>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-                    <div class="space-y-6 md:space-y-8">
-                        <div class="flex items-center gap-4 md:gap-6">
-                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0">
-                                <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <div class="space-y-5 md:space-y-6">
+                        <div class="glass-panel p-5 md:p-6 flex items-center gap-5 md:gap-6">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white shrink-0 shadow-inner">
+                                <svg class="w-7 h-7 md:w-8 md:h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </div>
                             <div>
-                                <h3 class="text-2xl md:text-3xl font-light text-white tracking-tight">$100Bn<span class="text-gray-500 font-medium">+</span></h3>
-                                <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-semibold mt-1">Annual Movie Industry</p>
+                                <h3 class="text-3xl md:text-4xl font-light text-white tracking-tight">$100Bn<span class="text-gray-600 font-medium ml-1">+</span></h3>
+                                <p class="text-[10px] md:text-xs text-gray-400 uppercase tracking-widest font-mono mt-1 md:mt-2">Annual Movie Industry</p>
                             </div>
                         </div>
                         
-                        <div class="flex items-center gap-4 md:gap-6">
-                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-500 shrink-0">
-                                <svg class="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="glass-panel p-5 md:p-6 flex items-center gap-5 md:gap-6 border-l-4 border-l-yellow-500">
+                            <div class="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-yellow-500/20 to-transparent border border-yellow-500/30 flex items-center justify-center text-yellow-400 shrink-0 shadow-[inset_0_1px_1px_rgba(250,204,21,0.3)]">
+                                <svg class="w-7 h-7 md:w-8 md:h-8 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <div>
-                                <h3 class="text-2xl md:text-3xl font-medium text-yellow-400 tracking-tight">$200Bn<span class="text-yellow-500/50">+</span></h3>
-                                <p class="text-[10px] md:text-xs text-yellow-500/70 uppercase tracking-widest font-semibold mt-1">Global Gaming Industry</p>
+                                <h3 class="text-3xl md:text-4xl font-medium text-white tracking-tight">$200Bn<span class="text-yellow-600/50 font-medium ml-1">+</span></h3>
+                                <p class="text-[10px] md:text-xs text-yellow-500/80 uppercase tracking-widest font-mono mt-1 md:mt-2">Global Gaming Industry</p>
                             </div>
                         </div>
                         
-                        <div class="pt-4 md:pt-6 border-t border-white/5">
-                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed">
+                        <div class="pt-2 md:pt-4">
+                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed font-light mb-4">
                                 We do not see Qantica competing with these companies but <strong class="text-white font-medium">partnering by delivering improved content</strong> already reviewed by our audience. Companies on both sides are trying to make inroads into each other's markets.
                             </p>
-                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed mt-3 md:mt-4">
+                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed font-light">
                                 Qantica is an <span class="text-white font-medium">agnostic curator of valuable IPs</span> that will be automatically reviewed for both movies and games potential, making us a valuable supplier to all participants.
                             </p>
                         </div>
                     </div>
 
-                    <!-- FOTO 1 Container Adaptado -->
-                    <div class="image-container">
-                        <img src="FOTO1.png" alt="Market Size Visual" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <!-- Text fallback corporativo -->
-                        <div style="display:none;" class="flex-col items-center justify-center text-gray-600 w-full h-full">
-                            <svg class="w-10 h-10 md:w-12 md:h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span class="text-[10px] uppercase tracking-widest font-mono">FOTO1.png Area</span>
+                    <!-- FOTO 1 Container Robusto -->
+                    <div class="glass-panel p-2 md:p-3">
+                        <div class="image-fallback-container">
+                            <img src="FOTO1.png" alt="Market Size Visual" loading="lazy" class="w-full h-full object-cover rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none;" class="flex-col items-center justify-center text-gray-500 w-full h-full p-8 text-center">
+                                <svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="text-[10px] uppercase tracking-widest font-mono block mb-2">Visual Asset Required</span>
+                                <span class="text-xs font-light text-gray-600">Insert FOTO1.png</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SLIDE 6: COMPETITION -->
-        <div class="slide" id="slide-6">
+        <!-- SLIDE 6: COMPETITION (SLATE) -->
+        <div class="slide bg-theme-slate" id="slide-6">
             <div class="slide-content max-w-6xl h-full flex flex-col justify-center">
-                <div class="mb-6 md:mb-8 border-b border-white/5 pb-4 md:text-right">
+                <div class="mb-6 md:mb-10 border-b border-white/10 pb-4 md:text-right">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-mono">Market Landscape</span>
                     <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">The <span class="font-semibold text-gradient">Competition</span></h2>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
                     
-                    <!-- FOTO 2 Container Adaptado -->
-                    <div class="image-container order-2 lg:order-1">
-                        <img src="FOTO2.png" alt="Competition Visual" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <!-- Text fallback corporativo -->
-                        <div style="display:none;" class="flex-col items-center justify-center text-gray-600 w-full h-full">
-                            <svg class="w-10 h-10 md:w-12 md:h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
-                            <span class="text-[10px] uppercase tracking-widest font-mono">FOTO2.png Area</span>
+                    <!-- FOTO 2 Container Robusto -->
+                    <div class="glass-panel p-2 md:p-3 order-2 lg:order-1">
+                        <div class="image-fallback-container">
+                            <img src="FOTO2.png" alt="Competition Visual" loading="lazy" class="w-full h-full object-cover rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none;" class="flex-col items-center justify-center text-gray-500 w-full h-full p-8 text-center">
+                                <svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+                                <span class="text-[10px] uppercase tracking-widest font-mono block mb-2">Visual Asset Required</span>
+                                <span class="text-xs font-light text-gray-600">Insert FOTO2.png</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="order-1 lg:order-2">
-                        <p class="text-sm md:text-lg text-gray-300 leading-relaxed mb-6 md:mb-8 font-light">
+                        <p class="text-base md:text-xl text-gray-300 leading-relaxed mb-6 md:mb-10 font-light">
                             Qantica uses both <strong class="text-white font-medium">AI and Blockchain</strong> to provide a more robust and comprehensive infrastructure through QSS.
                         </p>
                         
-                        <div class="space-y-4 md:space-y-6 mb-6 md:mb-8">
-                            <div class="flex items-start gap-4">
-                                <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-white">
-                                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <div class="space-y-4 md:space-y-6 mb-8 md:mb-10">
+                            <div class="glass-panel p-4 md:p-5 flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-white shadow-inner">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </div>
-                                <p class="text-xs md:text-sm text-gray-400 pt-1 md:pt-1.5">Partners with the creators, avoiding costly IP disputes.</p>
+                                <p class="text-sm text-gray-300 font-light">Partners with the creators, avoiding costly IP disputes.</p>
                             </div>
-                            <div class="flex items-start gap-4">
-                                <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 text-white">
-                                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <div class="glass-panel p-4 md:p-5 flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-white shadow-inner">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 </div>
-                                <p class="text-xs md:text-sm text-gray-400 pt-1 md:pt-1.5">The <strong class="text-white font-medium">only one current startup</strong> that works with both films/TV and games.</p>
+                                <p class="text-sm text-gray-300 font-light">The <strong class="text-white font-medium">only one current startup</strong> that works with both films/TV and games.</p>
                             </div>
                         </div>
 
-                        <div class="p-4 md:p-5 border-l-2 border-yellow-500 bg-gradient-to-r from-yellow-500/5 to-transparent">
-                            <p class="text-white font-medium text-xs md:text-sm leading-relaxed">
+                        <div class="p-4 md:p-5 border-l-4 border-yellow-500 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-r-xl">
+                            <p class="text-white font-medium text-sm md:text-base leading-relaxed">
                                 Therefore, we see Qantica at the center of the new industry paradigm.
                             </p>
                         </div>
@@ -491,160 +539,157 @@
             </div>
         </div>
 
-        <!-- SLIDE 7: PRODUCT -->
-        <div class="slide" id="slide-7">
-            <div class="slide-content max-w-5xl text-center">
-                <div class="mb-8 md:mb-12">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-semibold">Core Technology</span>
+        <!-- SLIDE 7: PRODUCT (CHARCOAL) -->
+        <div class="slide bg-theme-charcoal" id="slide-7">
+            <!-- Ambient Orbs -->
+            <div class="ambient-orb bg-yellow-500/10 w-[500px] h-[500px] top-1/4 left-1/4"></div>
+
+            <div class="slide-content max-w-5xl text-center relative z-10">
+                <div class="mb-8 md:mb-12 border-b border-white/10 pb-4">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 md:mb-2 font-mono">Core Technology</span>
                     <h2 class="text-3xl md:text-5xl font-light text-white tracking-tight">The <span class="font-semibold text-gradient">Product</span></h2>
                 </div>
 
-                <div class="w-full max-w-3xl mx-auto text-left compartment border-white/5 bg-[#0a0a0c]/80">
-                    <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-6 md:mb-8 text-center md:text-left">
-                        <div class="w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white font-light tracking-widest text-xl md:text-2xl shadow-[0_0_20px_rgba(250,204,21,0.1)]">
+                <div class="glass-panel w-full max-w-4xl mx-auto text-left p-6 md:p-12">
+                    <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-8 md:mb-10 text-center md:text-left">
+                        <div class="w-24 h-24 md:w-32 md:h-32 shrink-0 rounded-[2rem] bg-gradient-to-br from-white/10 to-transparent border border-white/20 flex items-center justify-center text-white font-light tracking-widest text-2xl md:text-4xl shadow-[0_10px_30px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)]">
                             QSS
                         </div>
                         <div>
-                            <h3 class="text-xl md:text-2xl font-light text-white mb-2 md:mb-3">Qantica's Smart System</h3>
-                            <p class="text-xs md:text-sm text-gray-400 leading-relaxed">
+                            <h3 class="text-2xl md:text-3xl font-light text-white mb-3 md:mb-4">Qantica's Smart System</h3>
+                            <p class="text-sm md:text-base text-gray-400 leading-relaxed font-light">
                                 Curates, develops and sells IPs maximizing their value by exploring all available distribution channels, from movies to games. 
                             </p>
                         </div>
                     </div>
 
-                    <div class="border-t border-white/5 pt-6 md:pt-8 text-left">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                            <div class="bg-transparent border border-white/5 p-3 md:p-4 rounded-xl flex items-start gap-3 md:gap-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
-                                <p class="text-[11px] md:text-xs text-gray-400 leading-relaxed">Activates and runs <strong class="text-white font-medium">QIP (US patented method)</strong></p>
-                            </div>
-                            <div class="bg-transparent border border-white/5 p-3 md:p-4 rounded-xl flex items-start gap-3 md:gap-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
-                                <p class="text-[11px] md:text-xs text-gray-400 leading-relaxed">Determines <strong class="text-white font-medium">gaming potential</strong> of IPs</p>
-                            </div>
-                            <div class="bg-transparent border border-white/5 p-3 md:p-4 rounded-xl flex items-start gap-3 md:gap-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
-                                <p class="text-[11px] md:text-xs text-gray-400 leading-relaxed">Runs development suggestions (budgeting, music, merchandising)</p>
-                            </div>
-                            <div class="bg-transparent border border-white/5 p-3 md:p-4 rounded-xl flex items-start gap-3 md:gap-4">
-                                <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 shrink-0"></div>
-                                <p class="text-[11px] md:text-xs text-gray-400 leading-relaxed">Market targeting & presentation to audience <strong class="text-white font-medium">auctions</strong></p>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pt-6 md:pt-8 border-t border-white/10">
+                        <div class="bg-white/5 border border-white/10 p-4 md:p-6 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/10">
+                            <div class="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.8)]"></div>
+                            <p class="text-xs md:text-sm text-gray-300 leading-relaxed font-light">Activates and runs <strong class="text-white font-medium">QIP (US patented method)</strong></p>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 p-4 md:p-6 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/10">
+                            <div class="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.8)]"></div>
+                            <p class="text-xs md:text-sm text-gray-300 leading-relaxed font-light">Determines <strong class="text-white font-medium">gaming potential</strong> of IPs</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 p-4 md:p-6 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/10">
+                            <div class="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.8)]"></div>
+                            <p class="text-xs md:text-sm text-gray-300 leading-relaxed font-light">Runs development suggestions (budgeting, music, merchandising)</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 p-4 md:p-6 rounded-2xl flex items-start gap-4 transition-colors hover:bg-white/10">
+                            <div class="w-2 h-2 rounded-full bg-yellow-500 mt-2 shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.8)]"></div>
+                            <p class="text-xs md:text-sm text-gray-300 leading-relaxed font-light">Market targeting & presentation to audience <strong class="text-white font-medium">auctions</strong></p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SLIDE 8: BUSINESS MODEL -->
-        <div class="slide" id="slide-8">
+        <!-- SLIDE 8: BUSINESS MODEL (BLACK) -->
+        <div class="slide bg-theme-black" id="slide-8">
             <div class="slide-content max-w-6xl w-full flex flex-col h-[75vh] md:h-[85vh]">
                 <div class="mb-4 md:mb-6 flex-shrink-0">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block font-semibold mb-1 md:mb-2">Financial Projections</span>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest block font-mono mb-1 md:mb-2">Financial Projections</span>
                     <h2 class="text-3xl font-light text-white tracking-tight">Business <span class="font-semibold text-gradient">Model</span></h2>
                 </div>
 
-                <div class="compartment border-white/5 p-1 flex-grow overflow-hidden flex flex-col bg-transparent">
-                    <div class="custom-table-container flex-grow p-2 md:p-4">
-                        <table class="w-full text-left text-[11px] text-gray-400 whitespace-nowrap min-w-[500px]">
-                            <thead class="text-xs text-white font-medium bg-[#0a0a0c]">
+                <div class="glass-panel p-2 flex-grow overflow-hidden flex flex-col">
+                    <div class="custom-table-container flex-grow p-0 relative">
+                        <table class="w-full text-left text-[11px] md:text-xs text-gray-400 whitespace-nowrap min-w-[600px] border-collapse">
+                            <thead class="text-white font-medium">
                                 <tr>
-                                    <th class="p-3 border-b border-white/10 font-normal text-gray-500 sticky left-0 bg-[#0a0a0c]">Metric</th>
-                                    <th class="p-3 border-b border-white/10 text-right font-normal">Year 1</th>
-                                    <th class="p-3 border-b border-white/10 text-right font-normal">Year 2</th>
-                                    <th class="p-3 border-b border-white/10 text-right font-normal">Year 3</th>
+                                    <th class="p-3 md:p-4 sticky left-0 z-30">Metric</th>
+                                    <th class="p-3 md:p-4 text-right">Year 1</th>
+                                    <th class="p-3 md:p-4 text-right">Year 2</th>
+                                    <th class="p-3 md:p-4 text-right">Year 3</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/5">
-                                <!-- Volume Metrics -->
+                            <tbody class="divide-y divide-white/5 font-light">
                                 <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 font-medium text-white sticky left-0 bg-[#0a0a0c]">IPs entering Q</td>
+                                    <td class="p-3 font-medium text-white sticky-col">IPs entering Q</td>
                                     <td class="p-3 text-right">18,000</td><td class="p-3 text-right">18,000</td><td class="p-3 text-right">24,000</td>
                                 </tr>
                                 <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">IPs entering the Method</td>
+                                    <td class="p-3 pl-8 sticky-col">IPs entering the Method</td>
                                     <td class="p-3 text-right">6,000</td><td class="p-3 text-right">6,000</td><td class="p-3 text-right">7,800</td>
                                 </tr>
                                 <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Curated IPs entering Dashboard</td>
+                                    <td class="p-3 pl-8 sticky-col">Curated IPs entering Dashboard</td>
                                     <td class="p-3 text-right">5,000</td><td class="p-3 text-right">6,000</td><td class="p-3 text-right">7,800</td>
                                 </tr>
                                 <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">IPs going to auction</td>
+                                    <td class="p-3 pl-8 sticky-col">IPs going to auction</td>
                                     <td class="p-3 text-right">4,500</td><td class="p-3 text-right">6,000</td><td class="p-3 text-right">7,350</td>
                                 </tr>
-                                <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-3 font-medium text-yellow-500 sticky left-0 bg-[#0a0a0c]">IPs sold</td>
-                                    <td class="p-3 text-right text-yellow-500">172</td><td class="p-3 text-right text-yellow-500">280</td><td class="p-3 text-right text-yellow-500">330</td>
+                                <tr class="bg-yellow-500/10">
+                                    <td class="p-3 font-medium text-yellow-400 sticky-col" style="background-color: #1a1705;">IPs sold</td>
+                                    <td class="p-3 text-right text-yellow-400 font-medium">172</td><td class="p-3 text-right text-yellow-400 font-medium">280</td><td class="p-3 text-right text-yellow-400 font-medium">330</td>
                                 </tr>
 
-                                <!-- Revenue Block 1 -->
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue US</td><td class="p-3 text-right">$ 1,500,000</td><td class="p-3 text-right">$ 1,750,000</td><td class="p-3 text-right">$ 2,000,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Europe</td><td class="p-3 text-right">$ 200,000</td><td class="p-3 text-right">$ 250,000</td><td class="p-3 text-right">$ 275,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Latam</td><td class="p-3 text-right">$ 75,000</td><td class="p-3 text-right">$ 100,000</td><td class="p-3 text-right">$ 125,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue US</td><td class="p-3 text-right">$ 1,500,000</td><td class="p-3 text-right">$ 1,750,000</td><td class="p-3 text-right">$ 2,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Europe</td><td class="p-3 text-right">$ 200,000</td><td class="p-3 text-right">$ 250,000</td><td class="p-3 text-right">$ 275,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Latam</td><td class="p-3 text-right">$ 75,000</td><td class="p-3 text-right">$ 100,000</td><td class="p-3 text-right">$ 125,000</td></tr>
                                 
-                                <tr class="hover:bg-white/5 transition-colors border-t border-white/5 mt-2">
-                                    <td class="p-3 font-medium text-white sticky left-0 bg-[#0a0a0c]">IPs recycled</td>
+                                <tr class="border-t border-white/10 mt-2">
+                                    <td class="p-3 font-medium text-white sticky-col">IPs recycled</td>
                                     <td class="p-3 text-right">22</td><td class="p-3 text-right">58</td><td class="p-3 text-right">80</td>
                                 </tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue US</td><td class="p-3 text-right">$ 750,000</td><td class="p-3 text-right">$ 1,050,000</td><td class="p-3 text-right">$ 1,200,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Europe</td><td class="p-3 text-right">$ 100,000</td><td class="p-3 text-right">$ 150,000</td><td class="p-3 text-right">$ 165,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Latam</td><td class="p-3 text-right">$ 37,500</td><td class="p-3 text-right">$ 60,000</td><td class="p-3 text-right">$ 75,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue US</td><td class="p-3 text-right">$ 750,000</td><td class="p-3 text-right">$ 1,050,000</td><td class="p-3 text-right">$ 1,200,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Europe</td><td class="p-3 text-right">$ 100,000</td><td class="p-3 text-right">$ 150,000</td><td class="p-3 text-right">$ 165,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Latam</td><td class="p-3 text-right">$ 37,500</td><td class="p-3 text-right">$ 60,000</td><td class="p-3 text-right">$ 75,000</td></tr>
 
-                                <!-- Other IP Channels -->
-                                <tr class="hover:bg-white/5 transition-colors border-t border-white/5">
-                                    <td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">IPs Going to YouTube</td><td class="p-3 text-right">4,805</td><td class="p-3 text-right">5,680</td><td class="p-3 text-right">7,385</td>
+                                <tr class="border-t border-white/10">
+                                    <td class="p-3 text-white sticky-col">IPs Going to YouTube</td><td class="p-3 text-right">4,805</td><td class="p-3 text-right">5,680</td><td class="p-3 text-right">7,385</td>
                                 </tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">IP's going to Crowdfunding</td><td class="p-3 text-right">48</td><td class="p-3 text-right">57</td><td class="p-3 text-right">80</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Fee</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 9,600,000</td><td class="p-3 text-right">$ 11,600,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue US</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 21,600,000</td><td class="p-3 text-right">$ 29,400,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Europe</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 1,920,000</td><td class="p-3 text-right">$ 2,800,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Latam</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 1,800,000</td><td class="p-3 text-right">$ 2,800,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky-col">IP's going to Crowdfunding</td><td class="p-3 text-right">48</td><td class="p-3 text-right">57</td><td class="p-3 text-right">80</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Fee</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 9,600,000</td><td class="p-3 text-right">$ 11,600,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue US</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 21,600,000</td><td class="p-3 text-right">$ 29,400,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Europe</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 1,920,000</td><td class="p-3 text-right">$ 2,800,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Latam</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 1,800,000</td><td class="p-3 text-right">$ 2,800,000</td></tr>
 
-                                <!-- Returning for Auction -->
-                                <tr class="hover:bg-white/5 transition-colors border-t border-white/5">
-                                    <td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">IP's returning for auction</td><td class="p-3 text-right">48</td><td class="p-3 text-right">57</td><td class="p-3 text-right">80</td>
+                                <tr class="border-t border-white/10">
+                                    <td class="p-3 text-white sticky-col">IP's returning for auction</td><td class="p-3 text-right">48</td><td class="p-3 text-right">57</td><td class="p-3 text-right">80</td>
                                 </tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue US</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 25,200,000</td><td class="p-3 text-right">$ 34,200,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Europe</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 2,400,000</td><td class="p-3 text-right">$ 3,135,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Revenue Latam</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 2,400,000</td><td class="p-3 text-right">$ 3,562,500</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue US</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 25,200,000</td><td class="p-3 text-right">$ 34,200,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Europe</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 2,400,000</td><td class="p-3 text-right">$ 3,135,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky-col">Revenue Latam</td><td class="p-3 text-right">-</td><td class="p-3 text-right">$ 2,400,000</td><td class="p-3 text-right">$ 3,562,500</td></tr>
 
                                 <!-- TOTALS -->
-                                <tr class="bg-white/5 text-white font-medium border-t border-white/10">
-                                    <td class="p-3 sticky left-0 bg-[#0e0e11]">Total Revenue</td>
+                                <tr class="bg-green-500/10 text-green-400 font-medium border-t border-green-500/20">
+                                    <td class="p-3 sticky-col" style="background-color: #0b1a10;">Total Revenue</td>
                                     <td class="p-3 text-right">$ 84,927,522</td>
                                     <td class="p-3 text-right">$ 187,472,580</td>
                                     <td class="p-3 text-right">$ 282,165,138</td>
                                 </tr>
 
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 sticky left-0 bg-[#0a0a0c]">IPS accumulating in the system</td><td class="p-3 text-right">4,709</td><td class="p-3 text-right">10,275</td><td class="p-3 text-right">17,512</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 sticky-col">IPS accumulating in the system</td><td class="p-3 text-right">4,709</td><td class="p-3 text-right">10,275</td><td class="p-3 text-right">17,512</td></tr>
                                 
                                 <!-- Costs -->
-                                <tr class="hover:bg-white/5 transition-colors border-t border-white/5"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">Cost of Method</td><td class="p-3 text-right">$ 12,000,000</td><td class="p-3 text-right">$ 12,000,000</td><td class="p-3 text-right">$ 15,600,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">Total payments to creators</td><td></td><td></td><td></td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Cost US</td><td class="p-3 text-right">$ 25,357,500</td><td class="p-3 text-right">$ 61,257,000</td><td class="p-3 text-right">$ 81,154,528</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Cost Europe</td><td class="p-3 text-right">$ 2,254,000</td><td class="p-3 text-right">$ 5,775,000</td><td class="p-3 text-right">$ 17,578,750</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 sticky left-0 bg-[#0a0a0c]">Cost Latam</td><td class="p-3 text-right">$ 2,113,125</td><td class="p-3 text-right">$ 5,723,375</td><td class="p-3 text-right">$ 9,228,625</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">Cost of Operation</td><td class="p-3 text-right">$ 12,000,000</td><td class="p-3 text-right">$ 15,000,000</td><td class="p-3 text-right">$ 20,000,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">Marketing</td><td class="p-3 text-right">$ 2,500,000</td><td class="p-3 text-right">$ 5,000,000</td><td class="p-3 text-right">$ 5,000,000</td></tr>
-                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky left-0 bg-[#0a0a0c]">Other costs</td><td class="p-3 text-right">$ 1,500,000</td><td class="p-3 text-right">$ 2,500,000</td><td class="p-3 text-right">$ 4,000,000</td></tr>
+                                <tr class="border-t border-white/10"><td class="p-3 text-red-400/80 sticky-col">Cost of Method</td><td class="p-3 text-right text-red-400/80">$ 12,000,000</td><td class="p-3 text-right text-red-400/80">$ 12,000,000</td><td class="p-3 text-right text-red-400/80">$ 15,600,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-white sticky-col">Total payments to creators</td><td></td><td></td><td></td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 text-red-400/80 sticky-col">Cost US</td><td class="p-3 text-right text-red-400/80">$ 25,357,500</td><td class="p-3 text-right text-red-400/80">$ 61,257,000</td><td class="p-3 text-right text-red-400/80">$ 81,154,528</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 text-red-400/80 sticky-col">Cost Europe</td><td class="p-3 text-right text-red-400/80">$ 2,254,000</td><td class="p-3 text-right text-red-400/80">$ 5,775,000</td><td class="p-3 text-right text-red-400/80">$ 17,578,750</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 pl-8 text-red-400/80 sticky-col">Cost Latam</td><td class="p-3 text-right text-red-400/80">$ 2,113,125</td><td class="p-3 text-right text-red-400/80">$ 5,723,375</td><td class="p-3 text-right text-red-400/80">$ 9,228,625</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-red-400/80 sticky-col">Cost of Operation</td><td class="p-3 text-right text-red-400/80">$ 12,000,000</td><td class="p-3 text-right text-red-400/80">$ 15,000,000</td><td class="p-3 text-right text-red-400/80">$ 20,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-red-400/80 sticky-col">Marketing</td><td class="p-3 text-right text-red-400/80">$ 2,500,000</td><td class="p-3 text-right text-red-400/80">$ 5,000,000</td><td class="p-3 text-right text-red-400/80">$ 5,000,000</td></tr>
+                                <tr class="hover:bg-white/5 transition-colors"><td class="p-3 text-red-400/80 sticky-col">Other costs</td><td class="p-3 text-right text-red-400/80">$ 1,500,000</td><td class="p-3 text-right text-red-400/80">$ 2,500,000</td><td class="p-3 text-right text-red-400/80">$ 4,000,000</td></tr>
                                 
-                                <tr class="bg-white/5 text-gray-300 font-medium border-t border-white/10">
-                                    <td class="p-3 sticky left-0 bg-[#0e0e11]">Total costs</td>
+                                <tr class="bg-red-500/10 text-red-400 font-medium border-t border-red-500/20">
+                                    <td class="p-3 sticky-col" style="background-color: #1a0e0e;">Total costs</td>
                                     <td class="p-3 text-right">$ 57,724,625</td>
                                     <td class="p-3 text-right">$ 107,255,375</td>
                                     <td class="p-3 text-right">$ 152,561,903</td>
                                 </tr>
 
                                 <!-- NET REVENUE -->
-                                <tr class="bg-transparent font-medium text-white border-t border-white/20 mt-2">
-                                    <td class="p-4 text-xs sticky left-0 bg-[#0a0a0c]">Net Revenue</td>
-                                    <td class="p-4 text-right text-xs">$ 27,202,897</td>
-                                    <td class="p-4 text-right text-xs">$ 80,217,205</td>
-                                    <td class="p-4 text-right text-xs">$ 129,603,235</td>
+                                <tr class="bg-gradient-to-r from-yellow-500/10 to-transparent font-medium text-white border-t border-yellow-500/50 mt-2">
+                                    <td class="p-4 text-xs md:text-sm sticky-col" style="background-color: #16150a;">Net Revenue</td>
+                                    <td class="p-4 text-right text-xs md:text-sm">$ 27,202,897</td>
+                                    <td class="p-4 text-right text-xs md:text-sm">$ 80,217,205</td>
+                                    <td class="p-4 text-right text-xs md:text-sm">$ 129,603,235</td>
                                 </tr>
                                 <tr class="text-gray-600 text-[10px]">
-                                    <td class="p-3 sticky left-0 bg-[#0a0a0c]">Minimum cummulative</td>
+                                    <td class="p-3 sticky-col">Minimum cummulative</td>
                                     <td class="p-3 text-right">$ (7,000,000)</td>
                                     <td></td><td></td>
                                 </tr>
@@ -657,15 +702,13 @@
 
     </div>
 
-    <!-- NAVEGACIÓN -->
-    <div class="controls">
+    <!-- NAVEGACIÓN INFERIOR -->
+    <div class="controls" id="main-controls">
         <button class="nav-btn" id="prevBtn" onclick="prevSlide()">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         
-        <div class="progress-dots" id="dotsContainer">
-            <!-- Dots generated by JS -->
-        </div>
+        <div class="progress-dots" id="dotsContainer"></div>
 
         <button class="nav-btn" id="nextBtn" onclick="nextSlide()">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"></path></svg>
@@ -673,7 +716,7 @@
     </div>
 
     <script>
-        // --- Particle System Logic ---
+        // --- Particle System Logic (Siempre activo, fondo oscuro integral) ---
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let width, height;
@@ -689,21 +732,16 @@
             constructor() {
                 this.x = Math.random() * width;
                 this.y = Math.random() * height;
-                // Very small particles for subtlety
-                this.size = Math.random() * 1.5 + 0.5; 
-                // Very slow movement
-                this.speedX = Math.random() * 0.2 - 0.1; 
-                this.speedY = Math.random() * -0.3 - 0.1; 
-                // Low opacity for subtle effect
-                this.baseOpacity = Math.random() * 0.2 + 0.05;
-                // Mostly white, some corporate yellow
-                this.color = Math.random() > 0.8 ? '250, 204, 21' : '255, 255, 255'; 
+                this.size = Math.random() * 1.2 + 0.5; 
+                this.speedX = Math.random() * 0.15 - 0.075; 
+                this.speedY = Math.random() * -0.2 - 0.05; 
+                this.baseOpacity = Math.random() * 0.4 + 0.1;
+                this.color = Math.random() > 0.80 ? '250, 204, 21' : '255, 255, 255'; 
             }
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
                 
-                // Wrap around edges seamlessly
                 if (this.y < 0) {
                     this.y = height;
                     this.x = Math.random() * width;
@@ -712,7 +750,6 @@
                 if (this.x > width) this.x = 0;
             }
             draw() {
-                // Subtle twinkle effect by slight opacity variation could go here, keeping simple for now
                 ctx.fillStyle = `rgba(${this.color}, ${this.baseOpacity})`;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -722,7 +759,7 @@
 
         function initParticles() {
             particles = [];
-            // Amount of particles based on screen size (less on mobile)
+            // Optimizado para fluidez total
             let count = Math.floor((width * height) / 12000); 
             for (let i = 0; i < count; i++) {
                 particles.push(new Particle());
@@ -740,15 +777,13 @@
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-        animateParticles();
-
+        animateParticles(); // Arranca las partículas de manera permanente
 
         // --- Presentation Slider Logic ---
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
         const dotsContainer = document.getElementById('dotsContainer');
 
-        // Create dots
         slides.forEach((_, index) => {
             const dot = document.createElement('div');
             dot.classList.add('dot');
@@ -762,7 +797,7 @@
             slides.forEach((slide, index) => {
                 if (index === currentSlide) {
                     slide.classList.add('active');
-                    slide.scrollTop = 0; // Reset scroll when entering
+                    slide.scrollTop = 0; 
                 } else {
                     slide.classList.remove('active');
                 }
@@ -789,11 +824,13 @@
             updateUI();
         }
 
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
             if (e.key === 'ArrowLeft') prevSlide();
         });
+
+        // Initialize
+        updateUI(); 
     </script>
 </body>
 </html>
