@@ -109,7 +109,8 @@
             justify-content: flex-start;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 2.5rem 1rem 6rem 1rem; 
+            /* Padding inferior ampliado para móvil para esquivar los botones */
+            padding: 1.5rem 1rem 6rem 1rem; 
         }
         
         @media (min-width: 768px) {
@@ -270,11 +271,11 @@
         
         <!-- SLIDE 1: PORTADA -->
         <div class="slide active bg-theme-black" id="slide-1" style="padding: 0;">
-            <div class="w-full h-full flex flex-col items-center justify-center relative pb-16 md:pb-12 pt-4 px-4">
+            <div class="w-full h-full flex flex-col items-center justify-center relative pb-20 md:pb-12 pt-4 px-4">
                 <div class="ambient-orb bg-yellow-500/15 w-[80vw] h-[80vw] md:w-[600px] md:h-[600px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute"></div>
 
-                <div class="w-full flex-grow flex items-center justify-center relative z-10">
-                    <img src="QANTICALOGO.png" alt="Qantica Logo" class="w-[95%] md:w-full max-w-[1200px] h-auto max-h-[50vh] md:max-h-[60vh] object-contain transform scale-110 md:scale-[1.6] origin-center filter drop-shadow-[0_0_50px_rgba(250,204,21,0.25)] transition-transform duration-700 hover:scale-125 md:hover:scale-[1.7]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="w-full flex-grow flex items-center justify-center relative z-10 mt-8 md:mt-0">
+                    <img src="QANTICALOGO.png" alt="Qantica Logo" class="w-[95%] md:w-full max-w-[1200px] h-auto max-h-[45vh] md:max-h-[60vh] object-contain transform scale-110 md:scale-[1.6] origin-center filter drop-shadow-[0_0_50px_rgba(250,204,21,0.25)] transition-transform duration-700 hover:scale-125 md:hover:scale-[1.7]" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     
                     <div style="display:none;" class="flex flex-col items-center justify-center">
                         <h1 class="text-6xl md:text-[140px] font-black tracking-tighter text-white mb-2 text-gradient transform md:scale-125" style="line-height: 0.9;">QANTICA</h1>
@@ -282,7 +283,7 @@
                     </div>
                 </div>
                 
-                <div class="glass-panel text-center max-w-4xl p-6 md:p-10 z-20 w-full shrink-0 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative -mt-8 md:-mt-24">
+                <div class="glass-panel text-center max-w-4xl p-6 md:p-10 z-20 w-full shrink-0 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative -mt-4 md:-mt-24">
                     <h2 class="text-lg md:text-3xl font-light text-gray-200 mb-4 md:mb-6 tracking-wide">
                         Technology at the service of the <span class="text-white font-medium">human creative process</span>
                     </h2>
@@ -525,7 +526,7 @@
                     <div class="relative mt-8 md:mt-10 bg-white/5 rounded-xl border border-white/10 p-5 md:p-8 shadow-inner">
                         <div class="absolute left-0 top-0 w-1.5 h-full bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-l-xl"></div>
                         <p class="text-gray-200 font-light text-sm md:text-lg leading-relaxed italic">
-                            "Based on this dynamic, Qantica proposes a path: working with our patent involves content from the artist that is reflected in a blockchain contract."
+                            Qantica proposes a new path. Partnering with writers, and giving them the tools needed for them to take their proper place in the industry revenue allocation
                         </p>
                     </div>
                 </div>
@@ -651,12 +652,12 @@
             <div class="slide-content max-w-4xl mx-auto text-center relative z-10 flex flex-col justify-center h-full w-full">
                 <div class="mb-4 md:mb-6 border-b border-white/10 pb-4">
                     <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1 font-mono">The IP Curation and distribution cycle</span>
-                    <h2 class="text-3xl md:text-5xl font-light text-white tracking-tight">Launch <span class="font-semibold text-gradient">Plan</span></h2>
+                    <h2 class="text-3xl md:text-5xl font-light text-white tracking-tight">Qantica's Launch <span class="font-semibold text-gradient">Plan</span></h2>
                 </div>
 
                 <div class="glass-panel w-full p-5 md:p-8">
                     <p class="text-sm md:text-base text-gray-400 font-light mb-4 md:mb-6 text-left">
-                        A structured breakdown of the initial capital allocation required to successfully launch Qantica, activate QSS, and begin the IP curation cycle.
+                        A structured breakdown of the initial capital allocation required to successfully launch Qantica, activate QSS, and begin the IP curation and distribution cycle.
                     </p>
 
                     <!-- Uso de h-full en tarjetas para igualar la altura de las cajas (no se verán rotas) -->
